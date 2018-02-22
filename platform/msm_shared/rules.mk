@@ -95,3 +95,12 @@ ifeq ($(PLATFORM),veer)
                         $(LOCAL_DIR)/certificate.o \
                         $(LOCAL_DIR)/image_verify.o
 endif
+
+ifeq ($(PLATFORM),pre3)
+        OBJS += $(LOCAL_DIR)/crypto_eng.o \
+                        $(LOCAL_DIR)/crypto_hash.o \
+                        $(LOCAL_DIR)/proc_comm.o \
+                        $(LOCAL_DIR)/mddi.o \
+                        $(LOCAL_DIR)/certificate.o \
+                        $(LOCAL_DIR)/image_verify.o
+endif
