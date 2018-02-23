@@ -51,7 +51,7 @@ int gpiokeys_poll(unsigned keylist) {
 		}
 	}
 	
-	printf("vol up: %d, vol down: %d, select: %d\n", !gpio_get(KEY_UP_GPIO), !gpio_get(KEY_DOWN_GPIO), !gpio_get(KEY_SELECT_GPIO));
+	//printf("vol up: %d, vol down: %d, select: %d\n", !gpio_get(KEY_UP_GPIO), !gpio_get(KEY_DOWN_GPIO), !gpio_get(KEY_SELECT_GPIO));
 
 
 	return keys_result;
