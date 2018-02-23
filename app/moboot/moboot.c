@@ -392,7 +392,7 @@ void moboot_init(const struct app_descriptor *app)
 	}
 	
 	if (counted_images == 0) {
-		set_menu_entry("boot", BOOT_FS, "/boot/uImage-2.6.29-palm-shank", "default");
+		set_menu_entry("boot", BOOT_FS, "/boot/uImage-2.6.32.9-palm-rib", "default");
 	}
 
 
@@ -518,7 +518,7 @@ void moboot_init(const struct app_descriptor *app)
 							boot_flags |= BOOTLINUX_VERBOSE;
 						}
 					}
-
+					
 					if (splash_ptr) free(splash_ptr);
 
 
