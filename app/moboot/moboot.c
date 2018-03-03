@@ -62,6 +62,86 @@ unsigned gfx_trans;
 #define BOOT_SHUTDOWN 4
 #define BOOT_DFU 5
 
+void dummy() {
+	printf("Hey there, I'm the callback!\n");
+}
+
+void boot_webOS(char *title, char *name, char *arg) {
+	char splash_path[256];
+	ssize_t splash_sz;
+	void *splash_ptr;
+	int rv;
+	unsigned boot_flags;
+
+	/*gfxconsole_clear();
+	gfxconsole_settrans(gfx_trans);
+	show_background();
+	gfxconsole_setpos(0,0);
+
+	if (gfx_trans) {
+		gfxconsole_set_colors(0x00000000, 0x00000000);
+	} else {
+		gfxconsole_set_colors(0x00000000, 0x000000ff);
+	}*/
+
+	printf("Selected: '%s'\n\n", title);
+	printf("Loading '%s'... \n", arg);
+	printf("Loading location: %#08x\n", SCRATCH_ADDR);
+	printf("Loading max size: %d\n", SCRATCH_SIZE * 1024 * 1024);
+	if ((rv = fs_load_file(arg,
+				(void *)SCRATCH_ADDR, 
+				SCRATCH_SIZE * 1024 * 1024)) < 0) {
+		printf("FAILED\n");
+	} else {
+		printf("OK\n");
+			/* check for verbose boot */
+		sprintf(splash_path, "/boot/moboot.verbose.%s", 
+					name);
+		splash_ptr = NULL;
+		splash_sz = fs_load_file_mem(splash_path, &splash_ptr);
+			if (splash_sz > 0) {
+			if (strncmp(splash_ptr, "yes", 3) == 0) {
+				boot_flags |= BOOTLINUX_VERBOSE;
+			}
+		}
+		
+			if (splash_ptr) free(splash_ptr);
+				splash_ptr = NULL;
+		/* check for splash image */
+		sprintf(splash_path, "/boot/moboot.splash.%s.tga", 
+					name);
+			splash_sz = fs_load_file_mem(splash_path, &splash_ptr);
+			splash_surface = NULL;
+			if (splash_sz > 0) {
+			splash_surface = tga_decode(splash_ptr, splash_sz,
+									GFX_FORMAT_RGB_565);
+			struct display_info disp_info;
+			if (!display_surface) {
+			display_get_info(&disp_info);
+			display_surface = gfx_create_surface_from_display(
+						&disp_info);
+			}
+		}
+
+		/* do it to it! */
+		bootlinux_uimage_mem((void *)SCRATCH_ADDR, rv, NULL,
+				boot_flags);
+	}
+
+	/*gfxconsole_set_colors(0x00000000, 0x00ff0000);
+	printf("\n\nBOOT FAILED!\n\nPress SELECT to continue\n");
+	gfxconsole_set_colors(0x00000000, 0x000000ff);
+	gpiokeys_wait_select();*/
+
+	printf("\n\nBOOT FAILED!\n\nRebooting into recover mode in 3 seconds...\n");
+	int elapsed = 0;
+	for(;elapsed < 3; elapsed++) {
+		printf("%d...\n", elapsed+1);
+		thread_sleep(1000);
+	}
+	reboot_device(RESTART_REASON_RECOVER);
+}
+
 void boot_splash()
 {
 	unsigned splash_pos_x, splash_pos_y;
@@ -236,14 +316,10 @@ void moboot_init(const struct app_descriptor *app)
 	unsigned default_timeout;
 	unsigned counted_images;
 	unsigned use_next;
-	ssize_t splash_sz;
-	void *splash_ptr;
 	ssize_t background_sz;
 	void *background_ptr;
 	ssize_t tile_sz;
 	void *tile_ptr;
-	char splash_path[256];
-
 	unsigned boot_flags;
 
 	ssize_t rdmsgsz;
@@ -392,11 +468,10 @@ void moboot_init(const struct app_descriptor *app)
 	}
 	
 	if (counted_images == 0) {
-		set_menu_entry("boot", BOOT_FS, "/boot/uImage-2.6.32.9-palm-rib", "default");
+		set_menu_entry("boot", BOOT_FS, "/boot/uImage-debug", "default");
 	}
 
-
-	if (gpiokeys_poll(KEY_ALL)) {
+	/*if (gpiokeys_poll(KEY_ALL)) {
 		keys_pressed = 1;
 		printf("\nPlease release key(s)...");
 		while (1) {
@@ -405,6 +480,20 @@ void moboot_init(const struct app_descriptor *app)
 				break;
 			}
 		}
+	}*/
+
+	boot_webOS(entries[act]->title, entries[act]->name,  entries[act]->arg);
+
+
+	if (gpiokeys_poll(KEY_ALL)) {
+		keys_pressed = 1;
+		printf("\nKeys locked, rebooting into webOS to clear GPIO pins in 3 seconds...\n");
+		int elapsed = 0;
+		for(;elapsed < 3; elapsed++) {
+			printf("%d...\n", elapsed+1);
+			thread_sleep(1000);
+		}
+		reboot_device(RESTART_REASON_REBOOT);
 	}
 
 	gfx_trans = 0;
@@ -486,7 +575,8 @@ void moboot_init(const struct app_descriptor *app)
 				reboot_device(RESTART_REASON_SHUTDOWN);
 				break;
 			case BOOT_FS:
-				gfxconsole_clear();
+				boot_webOS(entries[act]->title, entries[act]->name,  entries[act]->arg);
+				/*gfxconsole_clear();
 				gfxconsole_settrans(gfx_trans);
 				show_background();
 				gfxconsole_setpos(0,0);
@@ -506,7 +596,7 @@ void moboot_init(const struct app_descriptor *app)
 				} else {
 					printf("OK\n");
 
-					/* check for verbose boot */
+
 					sprintf(splash_path, "/boot/moboot.verbose.%s", 
 								entries[act]->name);
 
@@ -518,12 +608,12 @@ void moboot_init(const struct app_descriptor *app)
 							boot_flags |= BOOTLINUX_VERBOSE;
 						}
 					}
-					
+					boot_flags |= BOOTLINUX_VERBOSE;
 					if (splash_ptr) free(splash_ptr);
 
 
 					splash_ptr = NULL;
-					/* check for splash image */
+
 					sprintf(splash_path, "/boot/moboot.splash.%s.tga", 
 								entries[act]->name);
 
@@ -542,7 +632,7 @@ void moboot_init(const struct app_descriptor *app)
 						}
 					}
 
-					/* do it to it! */
+
 					bootlinux_uimage_mem((void *)SCRATCH_ADDR, rv, boot_splash,
 							boot_flags);
 				}
@@ -550,10 +640,11 @@ void moboot_init(const struct app_descriptor *app)
 				gfxconsole_set_colors(0x00000000, 0x00ff0000);
 				printf("\n\nBOOT FAILED!\n\nPress SELECT to continue\n");
 				gfxconsole_set_colors(0x00000000, 0x000000ff);
-				gpiokeys_wait_select();
+				gpiokeys_wait_select();*/
 				break;
 		}
 	}
+
 }
 
 
