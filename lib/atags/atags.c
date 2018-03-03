@@ -48,7 +48,7 @@ void check_atags(unsigned *tags_ptr) {
 
 	while (tagp->hdr.size != 0) {
 		if (tagp->hdr.tag == ATAG_CORE) {
-			//
+			dprintf(INFO, "ATAG_CORE: FLAGS: 0x%08x, PAGESIZE: %d, ROOTDEV: %d\n", tagp->u.core.flags, tagp->u.core.pagesize, tagp->u.core.rootdev);
 		} else if (tagp->hdr.tag == ATAG_MEM) {
 			dprintf(INFO, "ATAG_MEM: START: 0x%08x SIZE: 0x%08x\n", tagp->u.mem.start, tagp->u.mem.size);
 		} else if (tagp->hdr.tag == ATAG_REVISION) {
