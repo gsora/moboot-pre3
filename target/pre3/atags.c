@@ -41,13 +41,13 @@ unsigned* target_atag_mem(unsigned* ptr)
         /* ATAG_MEM */
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
-	*ptr++ = 0x0cd00000;
+	*ptr++ = 0x0cc00000;
 	*ptr++ = 0x00200000;
 
 	*ptr++ = 4;
 	*ptr++ = 0x54410002;
 	*ptr++ = 0x0ff00000;
-	*ptr++ = 0x20000000;
+	*ptr++ = 0x40000000;
 	return ptr;
 }
 
