@@ -20,7 +20,7 @@
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
  * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
  * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * AND ON ANY THEORY1;11M72;12M2;12m OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
@@ -46,7 +46,9 @@ extern unsigned *passed_atags;
 void bootlinux_direct(void *kernel, unsigned machtype, unsigned *tags)
 {
 	void (*entry)(unsigned,unsigned,unsigned*) = kernel;
-
+	printf("tags: 0x%08x\n", tags);	
+	printf("entering critical section\n");
+	thread_sleep(2000);
 	enter_critical_section();
 	/* do any platform specific cleanup before kernel entry */
 	platform_uninit();
@@ -64,6 +66,7 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 	int have_cmdline = 0;
 
 	/* CORE */
+	printf("test\n");
 	*ptr++ = 5;
 	*ptr++ = 0x54410001;
 	*ptr++ = 0;
@@ -71,14 +74,16 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 	*ptr++ = 0;
 
 	if (ramdisk_size) {
+
 		*ptr++ = 4;
+
 		*ptr++ = 0x54420005;
+
 		*ptr++ = (unsigned)ramdisk;
 		*ptr++ = ramdisk_size;
 	}
 
 	ptr = target_atag_mem(ptr);
-
 	*ptr++ = 3;
 	*ptr++ = 0x54410007;
 	*ptr++ = 0;
@@ -92,10 +97,11 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 		const char *src;
 		char *dst;
 		unsigned n;
-		/* include terminating 0 and round up to a word multiple */
 		n = (cmdline_len + 4) & (~3);
 		*ptr++ = (n / 4) + 2;
+
 		*ptr++ = 0x54410009;
+
 		dst = (char *)ptr;
 		if (have_cmdline) {
 			src = cmdline;
@@ -104,17 +110,18 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 		ptr += (n / 4);
 	}
 
-	/* END */
+	
 	*ptr++ = 0;
 	*ptr++ = 0;
-
-
+	check_atags(tags);
+	printf("calling bootlinux_direct...\n");
 	bootlinux_direct(kernel, machtype, (unsigned *)tags);
 }
 
 unsigned bootlinux_uimage_mem(void *data, unsigned len, void (*callback)(),
 		unsigned flags)
 {
+
 	unsigned kernel_addr, ramdisk_addr;
 	unsigned kernel_size, ramdisk_size;
 	unsigned kernel_load, kernel_ep;
@@ -140,7 +147,7 @@ unsigned bootlinux_uimage_mem(void *data, unsigned len, void (*callback)(),
 			&kernel_addr, &ramdisk_addr, &ramdisk_size)) {
 		return 1;
 	} else {
-		printf("OK\n");
+		printf("kernel_load 0x%08x\nkernel_addr 0x%08x\nkernel_size %d\nkernel_ep 0x%08x\n", kernel_load, kernel_addr, kernel_size, kernel_ep);
 	}
 
 	if (!kernel_size) {
@@ -194,13 +201,9 @@ unsigned bootlinux_uimage_mem(void *data, unsigned len, void (*callback)(),
 
 	if (callback) callback();
 	
-#if 1 
-	bootlinux_atags(kernel_ep, (void *)0x00200100,
-		   cmdline, MACH_TYPE, RAMDISK_ADDR, ramdisk_size);
-#else
-	bootlinux_atags(kernel_ep, data, cmdline, MACH_TYPE,
+
+	bootlinux_atags(kernel_ep, (void *)TAGS_ADDR, cmdline, MACH_TYPE,
 			RAMDISK_ADDR, ramdisk_size);
-#endif
 
 }
 
