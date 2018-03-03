@@ -1,0 +1,88 @@
+bootie infos
+
+] printenv
+T   chargebypass = 1
+T   lcd_enable_vsync = true
+    checkbatt = 1
+    installer = trenchcoat
+T   klog_len = 0x100000
+T   klog_addr = 0x4ff00000
+T   chainbootdevice = mmc1
+T   bootaddress = 0x04600000
+T   bootdevice = mmc1p13
+T   bootfile = uImage
+T   bootfs = ext2
+T   bootargs-ramdisk = root=/dev/ram0 rw
+T   bootargs = root=/dev/mmcblk0p14 rootwait ro
+T   bootconsole = ttyS2,115200n8
+T   autoboot = fsboot
+T   boardtype = mantaray-pvt
+
+] getenv
+T   ? = 0
+T   chargebypass = 1
+T   lcd_enable_vsync = true
+    checkbatt = 1
+    installer = trenchcoat
+T   klog_len = 0x100000
+T   klog_addr = 0x4ff00000
+T   chainbootdevice = mmc1
+T   bootaddress = 0x04600000
+T   bootdevice = mmc1p13
+T   bootfile = uImage
+T   bootfs = ext2
+T   bootargs-ramdisk = root=/dev/ram0 rw
+T   bootargs = root=/dev/mmcblk0p14 rootwait ro
+T   bootconsole = ttyS2,115200n8
+T   autoboot = fsboot
+T   boardtype = mantaray-pvt
+
+] mmcid 1
+cid: 0x2010053 0x454d3038 0x4790519d 0xa9304e0a
+	mfg id: 0x2
+	oem id: 0x100
+	name: 'SEM08G'
+	rev: 0x90
+	sn: 0x519da930
+	date: 4.2011
+
+] fsboot
+loading file '/boot/uImage' to address 0x04600000
+parse_uimage:238: uimage 0x4600000
+found image header:
+	size 0x3ad3d8
+	load address 0x00208000
+	entry point 0x00208000
+	os 5
+	arch 2
+	type 2
+	compression 0
+	name 'Linux-2.6.32.9-palm-rib'
+calculating image crc
+using command line 'root=/dev/mmcblk0p14 rootwait ro fbcon=disable console=ttyS2,115200n8 nduid=b368bf88fee0e934224b5d609da087195c36deeb klog=0x4ff00000 klog_len=0x100000  boardtype=mantaray-pvt lcd_enable_vsync'
+copying kernel image from 0x4600040 to 0x208000, len 3855320
+done copying image
+about to boot linux jump to 0x208000
+sys_prepare_and_jump: type 1, target 0x208000, args: 0x0 0xc04 0x200100 0x0
+
+] dw 0x00200100 300
+0x00200100: 00000005 54410001 00000000 00000000  |......AT........|
+0x00200110: 00000000 00000004 54410002 0cc00000  |..........AT....|
+0x00200120: 00200000 00000004 54410002 0ff00000  |.. .......AT....|
+0x00200130: 40000000 00000003 54410007 00000000  |...@......AT....|
+0x00200140: 00000033 54410009 746f6f72 65642f3d  |3.....ATroot=/de|
+0x00200150: 6d6d2f76 6b6c6263 34317030 6f6f7220  |v/mmcblk0p14 roo|
+0x00200160: 69617774 6f722074 63626620 643d6e6f  |twait ro fbcon=d|
+0x00200170: 62617369 6320656c 6f736e6f 743d656c  |isable console=t|
+0x00200180: 32537974 3531312c 6e303032 646e2038  |tyS2,115200n8 nd|
+0x00200190: 3d646975 38363362 38386662 30656566  |uid=b368bf88fee0|
+0x002001a0: 34333965 62343232 30366435 30616439  |e934224b5d609da0|
+0x002001b0: 39313738 36336335 62656564 6f6c6b20  |87195c36deeb klo|
+0x002001c0: 78303d67 30666634 30303030 6f6c6b20  |g=0x4ff00000 klo|
+0x002001d0: 656c5f67 78303d6e 30303031 20203030  |g_len=0x100000  |
+0x002001e0: 72616f62 70797464 616d3d65 7261746e  |boardtype=mantar|
+0x002001f0: 702d7961 6c207476 655f6463 6c62616e  |ay-pvt lcd_enabl|
+0x00200200: 73765f65 00636e79 7fffd854 00000000  |e_vsync.T.......|
+0x00200210: 00000000 7ff990b4 809b47af 7ff991dc  |.........G......|
+0x00200220: 7fffd848 7ff99278 80a8b0b0 7ff992a0  |H...x...........|
+
