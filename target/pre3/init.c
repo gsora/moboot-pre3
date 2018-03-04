@@ -53,6 +53,8 @@ void target_init()
 	struct smem_ram_ptable ram_ptable;
 	
 	display_init();
+
+	// TODO: remember to remove these printf()'s
 	printf("scratch: 0x%x\n", target_get_scratch_address());
 	printf("display init done\n");
 	slot = 2;

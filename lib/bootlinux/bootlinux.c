@@ -46,11 +46,26 @@ extern unsigned *passed_atags;
 void bootlinux_direct(void *kernel, unsigned machtype, unsigned *tags)
 {
 	void (*entry)(unsigned,unsigned,unsigned*) = kernel;
+	// TODO: clear up this place, removing printf and that ugly thread_sleep!
 	printf("tags: 0x%08x\n", tags);	
 	printf("entering critical section\n");
 	thread_sleep(2000);
 	enter_critical_section();
-	/* do any platform specific cleanup before kernel entry */
+
+	/*
+	 * As per ARM requirements, before jumping to the kernel remember to:
+	 *  - go in SVC mode
+	 *  - disable the data cache
+	 *  - disable the MMU
+	 *
+	 *  Then, call the kernel.
+	 *
+	 *  The first parameter of entry() is 0 - by definition - then there's the machine type,
+	 *  and then the address containing all the ATAGS.
+	 *
+	 *  More infos:
+	 *  http://www.simtec.co.uk/products/SWLINUX/files/booting_article.html#d0e612
+	 */
 	platform_uninit();
 	arch_disable_cache(UCACHE);
 	arch_disable_mmu();
@@ -61,47 +76,75 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 		const char *cmdline, unsigned machtype,
 		void *ramdisk, unsigned ramdisk_size)
 {
+	// TODO: clean up this place too.
 	unsigned *ptr = tags;
 	int cmdline_len = 0;
 	int have_cmdline = 0;
 
-	/* CORE */
 	printf("test\n");
-	*ptr++ = 5;
-	*ptr++ = 0x54410001;
-	*ptr++ = 0;
-	*ptr++ = 0;
-	*ptr++ = 0;
 
+	/*
+	 * ATAG_CORE
+	 *
+	 * Size: 5
+	 * Content: nothing, even if per reference, if the ATAG_CORE size is 5, it
+	 * 	should at least contain meaningful data, not zeroes.
+	 */
+	*ptr++ = 5;		// size
+	*ptr++ = 0x54410001;	// ATAG_CORE tag
+	*ptr++ = 0; 		//
+	*ptr++ = 0; 		// -> zeroes
+	*ptr++ = 0; 		//
+
+	/*
+	 * ATAG_INITRD2
+	 *
+	 * Size: 4
+	 * Content: physical start address of the ramdisk image, and its
+	 * 	size in bytes.
+	 */
 	if (ramdisk_size) {
-
-		*ptr++ = 4;
-
-		*ptr++ = 0x54420005;
-
-		*ptr++ = (unsigned)ramdisk;
-		*ptr++ = ramdisk_size;
+		*ptr++ = 4; 			// size
+		*ptr++ = 0x54420005; 		// ATAG_INITRD2 tag
+		*ptr++ = (unsigned)ramdisk; 	// ramdisk address
+		*ptr++ = ramdisk_size;		// ramdisk image size
 	}
 
+	// Set up ATAG_MEM tags, see function declaration for docs.
 	ptr = target_atag_mem(ptr);
-	*ptr++ = 3;
-	*ptr++ = 0x54410007;
-	*ptr++ = 0;
 
+	/*
+	 * ATAG_REVISION
+	 * 
+	 * Size: 3
+	 * Content: integer representing the board revision.
+	 */
+	*ptr++ = 3; 		// size
+	*ptr++ = 0x54410007;	// ATAG_REVISION tag
+	*ptr++ = 0;		// board revision
+
+	// If there's a cmdline, append it using ATAG_CMDLINE
 	if (cmdline && cmdline[0]) {
 		cmdline_len = strlen(cmdline);
 		have_cmdline = 1;
 	}
-
+	
 	if (cmdline_len > 0) {
 		const char *src;
 		char *dst;
 		unsigned n;
+
+		/*
+		 * Black magic has been used here.
+		 *
+		 * As per doc, n = 2 + ((cmdline_len + 3) / 4)
+		 */
 		n = (cmdline_len + 4) & (~3);
 		*ptr++ = (n / 4) + 2;
 
-		*ptr++ = 0x54410009;
+		*ptr++ = 0x54410009; // ATAG_CMDLINE tag
 
+		// Copy the cmdline to the next n bytes.
 		dst = (char *)ptr;
 		if (have_cmdline) {
 			src = cmdline;
@@ -110,7 +153,13 @@ void bootlinux_atags(void *kernel, unsigned *tags,
 		ptr += (n / 4);
 	}
 
-	
+	/*
+	 * ATAG_NONE
+	 *
+	 * We're done here!
+	 *
+	 * The ATAGs have been set-up, Linux should boot fine :-)
+	 */
 	*ptr++ = 0;
 	*ptr++ = 0;
 	check_atags(tags);

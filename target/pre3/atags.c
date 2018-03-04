@@ -38,16 +38,31 @@ static int scratch_addr = -1;
 
 unsigned* target_atag_mem(unsigned* ptr)
 {
-        /* ATAG_MEM */
-	*ptr++ = 4;
-	*ptr++ = 0x54410002;
-	*ptr++ = 0x0cc00000;
-	*ptr++ = 0x00200000;
+	/*
+	 * This function sets the ATAG_MEM tags for the Pre 3.
+	 *
+	 * Each block of instructions refers to a single bank of memory, as
+	 * seen in the "mtest" bootie command output.
+	 *
+	 * Each ATAG_MEM tag has size 4.
+	 *
+	 * ATAG_MEM description can be found here:
+	 * http://www.simtec.co.uk/products/SWLINUX/files/booting_article.html#ATAG_MEM
+	 *
+	 * 	!!! - BEWARE - !!!
+	 * 
+	 * These settings works *only* for the HP Pre 3 - HP Touchpad and HP Veer have different
+	 * settings!
+	 */
+	*ptr++ = 4;		// size of the tag
+	*ptr++ = 0x54410002;	// ATAG_MEM tag
+	*ptr++ = 0x0cc00000;	// size of the memory area
+	*ptr++ = 0x00200000;	// physical start address of the memory area
 
-	*ptr++ = 4;
-	*ptr++ = 0x54410002;
-	*ptr++ = 0x0ff00000;
-	*ptr++ = 0x40000000;
+	*ptr++ = 4;		// size of the tag
+	*ptr++ = 0x54410002;	// ATAG_MEM tag
+	*ptr++ = 0x0ff00000;	// size of the memory area
+	*ptr++ = 0x40000000;	// physical start address of the memory area
 	return ptr;
 }
 
