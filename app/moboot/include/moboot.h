@@ -26,3 +26,45 @@
  * SUCH DAMAGE.
  */
 
+#include <app.h>
+#include <debug.h>
+#include <target/gpiokeys.h>
+#include <target/restart.h>
+#include <dev/fbcon.h>
+#include <dev/display.h>
+#include <sys/types.h>
+#include <lib/fs.h>
+#include <lib/tga.h>
+#include <lib/gfxconsole.h>
+#include <lib/bootlinux.h>
+
+typedef struct menu_entry
+{
+	char *title;
+	unsigned type;
+	char *arg;
+	char *name;
+} menu_entry_t;
+
+unsigned num_menu_entries;
+menu_entry_t **entries;
+
+gfx_surface *display_surface;
+gfx_surface *splash_surface;
+gfx_surface *background_surface;
+gfx_surface *tile_surface;
+
+unsigned gfx_trans;
+
+#define BOOT_FS 1
+#define BOOT_REBOOT 2
+#define BOOT_RECOVER 3
+#define BOOT_SHUTDOWN 4
+#define BOOT_DFU 5
+
+void boot_splash();
+void boot_webOS(char *title, char *name, char *arg);
+void moboot_init(const struct app_descriptor *app);
+int moboot_menu(unsigned x, unsigned y, menu_entry_t **entries, unsigned init, unsigned total, unsigned timeout);
+void set_menu_entry(char *title, unsigned type, char *arg, char *name);
+void show_background();
