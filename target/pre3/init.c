@@ -54,13 +54,12 @@ void target_init()
 	
 	display_init();
 
-	// TODO: remember to remove these printf()'s
-	printf("scratch: 0x%x\n", target_get_scratch_address());
-	printf("display init done\n");
+	dprintf(INFO, "scratch: 0x%x\n", target_get_scratch_address());
+	dprintf(INFO, "display init done\n");
 	slot = 2;
 	base_addr = mmc_sdc_base[slot-1];
 	mmc_boot_main(slot, base_addr);
-	printf("done loading from mmc\n");
+	dprintf(INFO, "done loading from mmc\n");
 }
 
 void reboot_device(unsigned reboot_reason)
